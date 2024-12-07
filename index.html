@@ -236,6 +236,7 @@
       const user = await auth0.getUser();
       document.getElementById("user-name").textContent = user.name || "guest";
       document.getElementById("user-name2").textContent = user.name || "guest";
+      document.getElementById("user3").textContent = user.name || "guest";
       document.getElementById("user-avatar").src = user.picture || "default-avatar.png";
     } else {
       auth0.loginWithRedirect();
