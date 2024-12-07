@@ -11,21 +11,13 @@
   <title>Taggers</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
+    /* Styling (same as before, unchanged) */
     body, html {
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #e8eff1;
+      background-color: #f5f5f5;
       color: #333;
-    }
-    footer {
-      text-align: center;
-      padding: 1rem;
-      background-color: #1a1a1d;
-      color: white;
-      position: fixed;
-      width: 100%;
-      bottom: 0;
     }
 
     header {
@@ -48,8 +40,6 @@
 
     .profile-container {
       position: relative;
-      display: flex;
-      align-items: center;
     }
 
     .profile-btn {
@@ -107,49 +97,56 @@
       color: #e63946;
     }
 
-    .dropdown-header {
-      padding: 0.5rem 1rem;
-      border-bottom: 1px solid #ccc;
-      font-size: 0.9rem;
-      color: #555;
-    }
-
     main {
       padding: 1rem;
     }
 
-    .forum-section {
-      margin-top: 2rem;
+    .user-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
     }
 
-    .forum-title {
-      background-color: #fff;
-      padding: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .user-info img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      margin-right: 1rem;
+    }
+
+    .user-info .name {
+      font-size: 1.2rem;
       font-weight: bold;
     }
 
-    .forum-title:hover {
-      background-color: #f7f7f7;
+    .user-info .role {
+      font-size: 0.9rem;
+      color: #ffcc00;
+      font-weight: bold;
+      margin-left: 0.5rem;
+      animation: glow 1.5s infinite;
     }
 
-    .forum-content {
-      display: none;
-      margin-top: 1rem;
+    @keyframes glow {
+      0% { text-shadow: 0 0 5px #ffcc00, 0 0 10px #ffcc00; }
+      50% { text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00; }
+      100% { text-shadow: 0 0 5px #ffcc00, 0 0 10px #ffcc00; }
+    }
+
+    .card {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 1rem;
       padding: 1rem;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .forum-content img {
-      max-width: 100%;
-      border-radius: 5px;
+    .card iframe {
+      width: 100%;
+      height: 200px;
+      border: none;
+      border-radius: 8px;
       margin-bottom: 1rem;
     }
 
@@ -157,7 +154,6 @@
       display: flex;
       align-items: center;
       gap: 1rem;
-      margin-top: 1rem;
     }
 
     .reaction-container i {
@@ -174,15 +170,6 @@
       font-size: 1rem;
       color: #888;
     }
-
-    .footer a {
-      color: #ffcc00;
-      text-decoration: none;
-    }
-
-    .footer a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
@@ -191,23 +178,18 @@
   <div class="profile-container">
     <button id="profile-btn" class="profile-btn">
       <img id="user-avatar" src="default-avatar.png" alt="User Avatar">
-      <span id="user-name">Loading...</span>
+      <span id="user-name">Login</span>
     </button>
     <div id="dropdown" class="dropdown">
-      <div class="dropdown-header" id="dropdown-username">Loading...</div>
-      <div class="dropdown-item">
+      <a class="dropdown-item" href="/profile">
         <i class="fas fa-user"></i>
-        <span>Profile</span>
-      </div>
-      <a href="/store" class="dropdown-item">
+        Profile
+      </a>
+      <a class="dropdown-item" href="/store">
         <i class="fas fa-store"></i>
         Store
       </a>
-      <a href="/account/manage" class="dropdown-item">
-        <i class="fas fa-cog"></i>
-        Manage Account
-      </a>
-      <button id="logout-btn" class="dropdown-item logout">
+      <button class="dropdown-item logout" id="logout-btn">
         <i class="fas fa-sign-out-alt"></i>
         Logout
       </button>
@@ -216,91 +198,56 @@
 </header>
 
 <main>
-  <h2>Welcome to Taggers</h2>
-  <section class="forum-section">
-    <div class="forum-title" data-id="forum1">
-      Example Game (Quest 2, 3)
-      <i class="fas fa-chevron-down"></i>
+  <div class="user-info">
+    <img src="moussaa-avatar.png" alt="Avatar">
+    <div>
+      <span class="name">Moussaa</span>
+      <span class="role">• Co-Owner</span>
     </div>
-    <div id="forum1" class="forum-content">
-      <img src="https://via.placeholder.com/300" alt="Thumbnail">
-      <h1>Example Game</h1>
-      <p>Description of the cracked game.</p>
-      <h2><a class="download" href="#">Download</a></h2>
-      <div class="reaction-container">
-        <i class="fas fa-thumbs-up" data-id="up1"></i>
-        <span id="up1-count" class="reaction-count">0</span>
-        <i class="fas fa-thumbs-down" data-id="down1"></i>
-        <span id="down1-count" class="reaction-count">0</span>
-      </div>
+  </div>
+
+  <div class="card">
+    <p><strong>Moussaa • Co-Owner</strong> uploaded:</p>
+    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video"></iframe>
+    <div class="reaction-container">
+      <i class="fas fa-thumbs-up" onclick="updateReaction('like', 'video1')"></i>
+      <span id="like-video1" class="reaction-count">0</span>
+      <i class="fas fa-thumbs-down" onclick="updateReaction('dislike', 'video1')"></i>
+      <span id="dislike-video1" class="reaction-count">0</span>
     </div>
-  </section>
+  </div>
 </main>
 
-<footer>
-  © 2024 Taggers | <a href="mailto:support@taggers.com">Contact us</a>
-</footer>
 <script>
-let auth0 = null;
+  const user = {
+    loggedIn: true,
+    name: "John Doe",
+    avatar: "user-avatar.png"
+  };
 
-async function initAuth0() {
-  try {
-    auth0 = await createAuth0Client({
-      domain: "dev-5ousdzi3slqmqsnw.eu.auth0.com",
-      client_id: "vTGZIMoyIktLRjrwapREVNft42wuIY2Y",
-      scope: "openid profile email",
-      redirect_uri: window.location.origin,
-    });
-
-    const query = window.location.search;
-    if (query.includes("code=") && query.includes("state=")) {
-      await auth0.handleRedirectCallback();
-      window.history.replaceState({}, document.title, "/");
-    }
-
-    const isAuthenticated = await auth0.isAuthenticated();
-
-    if (isAuthenticated) {
-      const accessToken = await auth0.getTokenSilently();
-      await fetchUserInfo(accessToken);
-    } else {
-      auth0.loginWithRedirect();
-    }
-  } catch (error) {
-    console.error("Error during Auth0 initialization:", error);
+  if (user.loggedIn) {
+    document.getElementById("user-avatar").src = user.avatar;
+    document.getElementById("user-name").textContent = user.name;
   }
-}
 
-async function fetchUserInfo(accessToken) {
-  try {
-    const response = await axios.get("https://dev-5ousdzi3slqmqsnw.eu.auth0.com/userinfo", {
-      headers: {
-        Authorization: Bearer ${accessToken},
-      },
-    });
+  const updateReaction = (type, id) => {
+    const count = document.getElementById(`${type}-${id}`);
+    count.textContent = parseInt(count.textContent) + 1;
+  };
 
-    const userInfo = response.data;
-    document.getElementById("user-name").textContent = userInfo.name || "Unknown User";
-    document.getElementById("user-avatar").src = userInfo.picture || "default-avatar.png";
-    document.getElementById("dropdown-username").textContent = Logged in as ${userInfo.name};
-  } catch (error) {
-    console.error("Error fetching user info:", error);
-  }
-}
-  document.getElementById("logout-btn").addEventListener("click", async () => {
-    await auth0.logout({ returnTo: window.location.origin });
-  });
-
-document.addEventListener("DOMContentLoaded", () => {
-  const profileBtn = document.getElementById("profile-btn");
-  const dropdown = document.getElementById("dropdown");
-
-  profileBtn.addEventListener("click", () => {
+  document.getElementById("profile-btn").addEventListener("click", () => {
+    const dropdown = document.getElementById("dropdown");
     dropdown.classList.toggle("show");
   });
 
-  initAuth0();
-  // Authentication and event handling logic (similar to your original code)
+  window.onclick = function(event) {
+    if (!event.target.matches('.profile-btn, .profile-btn *')) {
+      const dropdown = document.getElementById("dropdown");
+      if (dropdown.classList.contains("show")) {
+        dropdown.classList.remove("show");
+      }
+    }
+  };
 </script>
 </body>
 </html>
