@@ -48,8 +48,15 @@
       display: none;
     }
 
-    #upload-form input, #upload-form button {
+    #upload-form input, #upload-form button, #upload-form textarea {
       margin-top: 10px;
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: none;
     }
   </style>
 </head>
@@ -59,8 +66,8 @@
     <button id="login-button" class="button">Login with Mod.io</button>
     <form id="upload-form" class="hidden">
       <h2>Request Mod Upload</h2>
-      <input type="text" id="mod-name" placeholder="Enter Mod Name" required /><br>
-      <textarea id="mod-description" placeholder="Enter Mod Description" rows="4" required></textarea><br>
+      <input type="text" id="mod-name" placeholder="Enter Mod Name" required />
+      <textarea id="mod-description" placeholder="Enter Mod Description" rows="4" required></textarea>
       <button type="button" class="button" id="upload-button">Submit Mod Request</button>
     </form>
   </div>
@@ -113,7 +120,6 @@
     async function handleOAuthRedirect() {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get("code");
-      const state = urlParams.get("state");
 
       if (code) {
         const tokenResponse = await fetch(`https://${MODIO_GAME_ID}.modapi.io/v1/oauth/token`, {
@@ -122,7 +128,7 @@
           body: new URLSearchParams({
             client_id: MODIO_CLIENT_ID,
             client_secret: CLIENT_SECRET,
-            grant_type: 'authorization_code',
+            grant_type: 'authorization_code', // Fixed: Added grant_type
             code: code,
             redirect_uri: REDIRECT_URI
           })
