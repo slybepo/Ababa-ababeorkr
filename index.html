@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>For You - TikTok Clone</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    .header {
+      background: #007BFF;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 1rem auto;
+      padding: 1rem;
+    }
+    .video-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+    }
+    .video-card video {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .video-details {
+      margin-top: 0.5rem;
+    }
+    .username {
+      font-weight: bold;
+      color: #555;
+    }
+    .moderator {
+      color: #28a745;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+    .actions button {
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .actions button:hover {
+      background: #0056b3;
+    }
+    .search-bar {
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .search-bar input {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .search-bar button {
+      padding: 0.5rem 1rem;
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .search-bar button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">For You</div>
+  <div class="container">
+    <div class="search-bar">
+      <input id="search" type="text" placeholder="Search topics...">
+      <button onclick="searchVideos()">Search</button>
+    </div>
+    <div id="video-list">
+      <!-- Video cards will be dynamically populated here -->
+    </div>
+  </div>
+  <script>
+    import { initializeApp } from "firebase/app";
+    import { getFirestore, collection, getDocs, updateDoc, doc } from "firebase/firestore";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function fetchVideos() {
+      const videoList = document.getElementById("video-list");
+      videoList.innerHTML = "";
+
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      querySnapshot.forEach((doc) => {
+        const video = doc.data();
+        const videoCard = document.createElement("div");
+        videoCard.className = "video-card";
+        videoCard.innerHTML = `
+          <video src="${video.url}" controls></video>
+          <div class="video-details">
+            <span class="username ${video.role === "moderator" ? "moderator" : ""}">
+              ${video.username}
+            </span>
+          </div>
+          <div class="actions">
+            <button onclick="likeVideo('${doc.id}', ${video.likes})">❤️ Like (${video.likes})</button>
+            <button onclick="shareVideo('${video.url}')">🔗 Share</button>
+            <button onclick="subscribeToUser('${video.username}')">➕ Subscribe</button>
+          </div>
+        `;
+        videoList.appendChild(videoCard);
+      });
+    }
+
+    async function likeVideo(videoId, currentLikes) {
+      try {
+        const videoDoc = doc(db, "videos", videoId);
+        await updateDoc(videoDoc, {
+          likes: currentLikes + 1,
+        });
+        fetchVideos();
+      } catch (error) {
+        console.error("Error liking video:", error);
+      }
+    }
+
+    function shareVideo(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        alert("Video link copied to clipboard!");
+      });
+    }
+
+    function subscribeToUser(username) {
+      alert(`You subscribed to ${username}!`);
+    }
+
+    async function searchVideos() {
+      const searchInput = document.getElementById("search").value.toLowerCase();
+      const videoList = document.getElementById("video-list");
+      videoList.innerHTML = "";
+
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      querySnapshot.forEach((doc) => {
+        const video = doc.data();
+        if (video.tags && video.tags.some((tag) => tag.toLowerCase().includes(searchInput))) {
+          const videoCard = document.createElement("div");
+          videoCard.className = "video-card";
+          videoCard.innerHTML = `
+            <video src="${video.url}" controls></video>
+            <div class="video-details">
+              <span class="username ${video.role === "moderator" ? "moderator" : ""}">
+                ${video.username}
+              </span>
+            </div>
+            <div class="actions">
+              <button onclick="likeVideo('${doc.id}', ${video.likes})">❤️ Like (${video.likes})</button>
+              <button onclick="shareVideo('${video.url}')">🔗 Share</button>
+              <button onclick="subscribeToUser('${video.username}')">➕ Subscribe</button>
+            </div>
+          `;
+          videoList.appendChild(videoCard);
+        }
+      });
+    }
+
+    fetchVideos();
+  </script>
+</body>
+</html>
+Features of This Page:
+For You Page Layout:
+
+Displays uploaded videos with options to like, share, and subscribe.
+Moderators have their username styled with a distinct color (.moderator class).
+Search Bar:
+
+Allows users to search for videos by tags or topics.
+Real-Time Like Updates:
+
+Users can like videos, and the count updates in Firebase.
+Moderator Highlighting:
+
+Users with the role moderator are displayed with a unique username style.
+Firebase Setup:
+Ensure you have a videos collection in Firestore.
+Add documents with fields like:
+json
+Copier le code
+{
+  "url": "video-url.mp4",
+  "username": "user123",
+  "role": "moderator",
+  "likes": 10,
+  "tags": ["funny", "music"]
+}
+Let me know if you need help setting up Firestore or adding other features!
+
+
+
+
+
+
+Vous avez dit :
+Just make it instead of alerts custom prompts and make it so people can view users profile with all uploaded videos and make sure moderators on the website can ban users
+ChatGPT a dit :
+ChatGPT
+Here’s an updated version of the index.html file that includes the following features:
+
+Custom prompts for actions (like subscription and video sharing).
+User profile viewing: Clicking a username shows their profile with all uploaded videos.
+Moderator tools: Moderators can ban users directly from the interface.
+index.html
+html
+Copier le code
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>For You - TikTok Clone</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    .header {
+      background: #007BFF;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 1rem auto;
+      padding: 1rem;
+    }
+    .video-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+    }
+    .video-card video {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .video-details {
+      margin-top: 0.5rem;
+    }
+    .username {
+      font-weight: bold;
+      color: #555;
+      cursor: pointer;
+    }
+    .moderator {
+      color: #28a745;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+    .actions button {
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .actions button:hover {
+      background: #0056b3;
+    }
+    .search-bar {
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .search-bar input {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .search-bar button {
+      padding: 0.5rem 1rem;
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .search-bar button:hover {
+      background: #0056b3;
+    }
+    #custom-prompt {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+    }
+    #custom-prompt input {
+      margin-top: 1rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    #custom-prompt button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #custom-prompt button:hover {
+      background: #0056b3;
+    }
+    #custom-prompt .close {
+      background: red;
+      float: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">For You</div>
+  <div class="container">
+    <div class="upload-section">
+      <h3>Upload Video</h3>
+      <input id="video-title" type="text" placeholder="Video title">
+      <input id="video-file" type="file" accept="video/*">
+      <button onclick="uploadVideo()">Upload</button>
+    </div>
+    <div class="search-bar">
+      <input id="search" type="text" placeholder="Search topics...">
+      <button onclick="searchVideos()">Search</button>
+    </div>
+    <div id="video-list">
+      <!-- Video cards will be dynamically populated here -->
+    </div>
+  </div>
+  <div id="custom-prompt">
+    <div id="prompt-content"></div>
+    <input id="prompt-input" type="text" style="display: none;">
+    <button id="prompt-confirm" onclick="handlePromptConfirm()">Confirm</button>
+    <button class="close" onclick="closePrompt()">Close</button>
+  </div>
+  <script>
+    // Firebase Configuration
+    import { initializeApp } from "firebase/app";
+    import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from "firebase/firestore";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyCnunqIcpqQQ9W_afM0SkcF5BOvnWrk8V4",
+  authDomain: "ltaggers.firebaseapp.com",
+  projectId: "ltaggers",
+  storageBucket: "ltaggers.firebasestorage.app",
+  messagingSenderId: "53455186722",
+  appId: "1:53455186722:web:88d1639d08767c5588d37b",
+  measurementId: "G-6L0MS6RRHP"
+};
+
+// Initialize Firebase
+;
+const analytics = getAnalytics(app);
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    let currentUser = { username: "user123", role: "moderator" }; // Example user
+
+    async function fetchVideos() {
+      const videoList = document.getElementById("video-list");
+      videoList.innerHTML = "";
+
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      querySnapshot.forEach((doc) => {
+        const video = doc.data();
+        const videoCard = document.createElement("div");
+        videoCard.className = "video-card";
+        videoCard.innerHTML = `
+          <video src="${video.url}" controls></video>
+          <div class="video-details">
+            <span class="username ${video.role === "moderator" ? "moderator" : ""}" onclick="viewProfile('${video.username}')">
+              ${video.username}
+            </span>
+          </div>
+          <div class="actions">
+            <button onclick="likeVideo('${doc.id}', ${video.likes})">❤️ Like (${video.likes})</button>
+            <button onclick="openPrompt('Share this video URL:', 'copy', '${video.url}')">🔗 Share</button>
+            ${currentUser.role === "moderator" && video.username !== currentUser.username 
+              ? `<button onclick="openPrompt('Ban ${video.username}?', 'banUser', '${video.username}')">🚫 Ban</button>` 
+              : ""}
+          </div>
+        `;
+        videoList.appendChild(videoCard);
+      });
+    }
+
+    async function uploadVideo() {
+      const title = document.getElementById("video-title").value;
+      const file = document.getElementById("video-file").files[0];
+      if (!title || !file) {
+        alert("Please provide a title and a video file.");
+        return;
+      }
+
+      const storageRef = ref(storage, `videos/${file.name}`);
+      await uploadBytes(storageRef, file);
+
+      const videoURL = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, "videos"), {
+        username: currentUser.username,
+        role: currentUser.role,
+        title: title,
+        url: videoURL,
+        likes: 0,
+      });
+
+      alert("Video uploaded successfully!");
+      fetchVideos();
+    }
+
+    async function banUser(username) {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      querySnapshot.forEach(async (doc) => {
+        if (doc.data().username === username) {
+          await deleteDoc(doc.ref);
+        }
+      });
+      alert(`${username} has been banned.`);
+    }
+
+    fetchVideos();
+  </script>
+</body>
+</html>
