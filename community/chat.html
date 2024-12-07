@@ -22,72 +22,135 @@
       height: 100vh;
       background-color: #f9f9f9;
     }
+    #user-info {
+      margin: 20px;
+      display: none;
+      text-align: center;
+    }
+    #user-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+    }
+    #login-button, #logout-button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #login-button {
+      background-color: #007bff;
+      color: white;
+    }
+    #logout-button {
+      background-color: #dc3545;
+      color: white;
+    }
     #chat-container {
       width: 100%;
       max-width: 600px;
       height: 600px;
       border: 1px solid #ccc;
       margin-top: 20px;
+      display: none;
     }
   </style>
 </head>
 <body>
   <h1>Auth0 + Sendbird Chat</h1>
-  <button id="login-button">Log in with Auth0</button>
+  <button id="login-button">Log In</button>
   <button id="logout-button" style="display: none;">Log Out</button>
-  <div id="chat-container" style="display: none;"></div>
+
+  <div id="user-info">
+    <img id="user-avatar" src="" alt="User Avatar">
+    <h2>Welcome, <span id="user-name"></span>!</h2>
+  </div>
+
+  <div id="chat-container"></div>
 
   <script>
-    (async () => {
-      const AUTH0_DOMAIN = "dev-5ousdzi3slqmqsnw.eu.auth0.com"; // Replace with your Auth0 domain
-      const AUTH0_CLIENT_ID = "vTGZIMoyIktLRjrwapREVNft42wuIY2Y"; // Replace with your Auth0 client ID
-      const SENDBIRD_APP_ID = "B639F52A-FC34-42A7-9FF5-E0AD0A87990C"; // Replace with your Sendbird App ID
+    let auth0 = null;
 
-      const auth0 = await createAuth0Client({
-        domain: AUTH0_DOMAIN,
-        clientId: AUTH0_CLIENT_ID,
-      });
+    async function initAuth0() {
+      try {
+        auth0 = await createAuth0Client({
+          domain: "dev-5ousdzi3slqmqsnw.eu.auth0.com", // Replace with your Auth0 domain
+          client_id: "vTGZIMoyIktLRjrwapREVNft42wuIY2Y", // Replace with your Auth0 client ID
+          scope: "openid profile email",
+          redirect_uri: window.location.origin,
+        });
 
-      const loginButton = document.getElementById("login-button");
-      const logoutButton = document.getElementById("logout-button");
-      const chatContainer = document.getElementById("chat-container");
-
-      // Handle login
-      loginButton.addEventListener("click", async () => {
-        await auth0.loginWithPopup();
-        const user = await auth0.getUser();
-
-        if (user) {
-          loginButton.style.display = "none";
-          logoutButton.style.display = "block";
-          chatContainer.style.display = "block";
-          initializeChat(user.sub); // Pass the unique Auth0 user ID to Sendbird
+        // Handle redirect callback if present
+        if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+          await auth0.handleRedirectCallback();
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
-      });
 
-      // Handle logout
-      logoutButton.addEventListener("click", () => {
-        auth0.logout({ returnTo: window.location.origin });
-        loginButton.style.display = "block";
-        logoutButton.style.display = "none";
-        chatContainer.style.display = "none";
-      });
+        const isAuthenticated = await auth0.isAuthenticated();
 
-      // Initialize Sendbird Chat
-      function initializeChat(userId) {
-        const sb = SendBirdUIKit.init({
-          appId: SENDBIRD_APP_ID,
-          userId: userId,
-        });
-
-        // Render the chat UI
-        SendBirdUIKit.render({
-          container: chatContainer,
-          channelList: { onChannelSelect: (channel) => console.log(channel) },
-          onError: (error) => console.error("Sendbird Error:", error),
-        });
+        if (isAuthenticated) {
+          const user = await auth0.getUser();
+          initializeSendbird(user); // Pass Auth0 user to initialize Sendbird
+        } else {
+          showLoginButton();
+        }
+      } catch (error) {
+        console.error("Error initializing Auth0:", error);
       }
-    })();
+    }
+
+    function initializeSendbird(user) {
+      const SENDBIRD_APP_ID = "B639F52A-FC34-42A7-9FF5-E0AD0A87990C"; // Replace with your Sendbird App ID
+      const sb = SendBirdUIKit.init({
+        appId: SENDBIRD_APP_ID,
+        userId: user.sub, // Use Auth0's unique user ID
+        nickname: user.name, // Use Auth0 user's name as nickname
+      });
+
+      // Render the chat UI
+      SendBirdUIKit.render({
+        container: document.getElementById("chat-container"),
+        channelList: {
+          onChannelSelect: (channel) => {
+            console.log("Selected channel:", channel);
+          },
+        },
+        onError: (error) => {
+          console.error("Sendbird Error:", error);
+        },
+      });
+
+      updateUI(user);
+      document.getElementById("chat-container").style.display = "block";
+    }
+
+    function updateUI(user) {
+      document.getElementById("user-name").textContent = user.name || "Guest";
+      document.getElementById("user-avatar").src = user.picture || "default-avatar.png";
+      document.getElementById("login-button").style.display = "none";
+      document.getElementById("logout-button").style.display = "block";
+      document.getElementById("user-info").style.display = "block";
+    }
+
+    function showLoginButton() {
+      document.getElementById("login-button").style.display = "block";
+      document.getElementById("logout-button").style.display = "none";
+      document.getElementById("user-info").style.display = "none";
+      document.getElementById("chat-container").style.display = "none";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initAuth0();
+
+      document.getElementById("login-button").addEventListener("click", async () => {
+        await auth0.loginWithRedirect();
+      });
+
+      document.getElementById("logout-button").addEventListener("click", async () => {
+        await auth0.logout({ returnTo: window.location.origin });
+      });
+    });
   </script>
 </body>
 </html>
