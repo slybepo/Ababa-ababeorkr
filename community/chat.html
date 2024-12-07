@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sendbird Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/@sendbird/uikit/dist/sendbird-uikit.min.js"></script>
+    <script src="auth.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sendbird/uikit/dist/sendbird-uikit.min.css">
 </head>
 <body>
     <div id="sendbird-chat" style="height: 100vh;"></div>
     <script>
-        const appId = "YOUR_APP_ID"; // Replace with your Sendbird App ID
-        const userId = "USER_ID"; // Unique ID for the user (e.g., from your auth system)
-        const accessToken = ""; // Optional: If you use tokens, provide it here
+        const appId = "B639F52A-FC34-42A7-9FF5-E0AD0A87990C"; // Replace with your Sendbird App ID
+        const userId = prompt("user kd"); // Unique ID for the user (e.g., from your auth system)
+        const accessToken = token; // Optional: If you use tokens, provide it here
 
         // Initialize UIKit
         const sb = new SendBirdUIKit({
