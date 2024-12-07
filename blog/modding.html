@@ -88,7 +88,7 @@
 
       try {
         // Step 1: Create mod metadata
-        const metadataResponse = await fetch(`${MODIO_API_URL}/games/YOUR_GAME_ID/mods`, {
+        const metadataResponse = await fetch(`${MODIO_API_URL}/games/8056/mods`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${accessToken}`,
@@ -110,7 +110,7 @@
         const formData = new FormData();
         formData.append("filedata", modFile);
 
-        const fileUploadResponse = await fetch(`${MODIO_API_URL}/games/YOUR_GAME_ID/mods/${metadata.id}/files`, {
+        const fileUploadResponse = await fetch(`${MODIO_API_URL}/games/8056/mods/${metadata.id}/files`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${accessToken}`,
