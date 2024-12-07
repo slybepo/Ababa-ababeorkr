@@ -3,139 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registration & Chat</title>
+  <title>Auth0 + Sendbird Chat</title>
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@sendbird/uikit@3/dist/index.min.js"></script>
+  <link
+    href="https://cdn.jsdelivr.net/npm/@sendbird/uikit@3/dist/index.min.css"
+    rel="stylesheet"
+  />
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f4;
-    }
-
-    .container {
-      max-width: 500px;
-      margin: 50px auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-      text-align: center;
-    }
-
-    form {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f9f9f9;
     }
-
-    input {
-      margin-bottom: 10px;
-      padding: 10px;
-      font-size: 1rem;
-    }
-
-    button {
-      padding: 10px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
     #chat-container {
-      display: none;
+      width: 100%;
+      max-width: 600px;
+      height: 600px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div id="registration-container" class="container">
-    <h2>Register</h2>
-    <form id="registration-form">
-      <input type="text" id="username" placeholder="Username" required />
-      <input type="email" id="email" placeholder="Email (optional)" />
-      <button type="submit">Register</button>
-    </form>
-  </div>
+  <h1>Auth0 + Sendbird Chat</h1>
+  <button id="login-button">Log in with Auth0</button>
+  <button id="logout-button" style="display: none;">Log Out</button>
+  <div id="chat-container" style="display: none;"></div>
 
-  <div id="login-container" class="container">
-    <h2>Login</h2>
-    <form id="login-form">
-      <input type="text" id="user-id" placeholder="User ID" required />
-      <button type="submit">Login</button>
-    </form>
-  </div>
-
-  <div id="chat-container" class="container">
-    <h2>Chat</h2>
-    <div id="sendbird-container"></div>
-  </div>
-
-  <script src="https://cdn.sendbird.com/js/sendbird.min.js"></script>
   <script>
-    const APP_ID = "B639F52A-FC34-42A7-9FF5-E0AD0A87990C"; // Replace with Sendbird Application ID
+    (async () => {
+      const AUTH0_DOMAIN = "dev-5ousdzi3slqmqsnw.eu.auth0.com"; // Replace with your Auth0 domain
+      const AUTH0_CLIENT_ID = "vTGZIMoyIktLRjrwapREVNft42wuIY2Y"; // Replace with your Auth0 client ID
+      const SENDBIRD_APP_ID = "B639F52A-FC34-42A7-9FF5-E0AD0A87990C"; // Replace with your Sendbird App ID
 
-    // Handle Registration
-    document.getElementById("registration-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.getElementById("username").value;
-      const email = document.getElementById("email").value;
-
-      // Send data to your backend to register the user
-      const response = await fetch("/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email }),
+      const auth0 = await createAuth0Client({
+        domain: AUTH0_DOMAIN,
+        clientId: AUTH0_CLIENT_ID,
       });
 
-      const data = await response.json();
-      if (data.success) {
-        alert(`User registered! Your User ID is: ${data.user_id}`);
-      } else {
-        alert(`Error: ${data.message}`);
-      }
-    });
+      const loginButton = document.getElementById("login-button");
+      const logoutButton = document.getElementById("logout-button");
+      const chatContainer = document.getElementById("chat-container");
 
-    // Handle Login
-    document.getElementById("login-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const userId = document.getElementById("user-id").value;
+      // Handle login
+      loginButton.addEventListener("click", async () => {
+        await auth0.loginWithPopup();
+        const user = await auth0.getUser();
 
-      // Log in via your backend to fetch the Access Token
-      const response = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId }),
+        if (user) {
+          loginButton.style.display = "none";
+          logoutButton.style.display = "block";
+          chatContainer.style.display = "block";
+          initializeChat(user.sub); // Pass the unique Auth0 user ID to Sendbird
+        }
       });
 
-      const data = await response.json();
-      if (data.success) {
-        const sb = new SendBirdChat({ appId: APP_ID });
-        await sb.connect(userId, data.access_token);
+      // Handle logout
+      logoutButton.addEventListener("click", () => {
+        auth0.logout({ returnTo: window.location.origin });
+        loginButton.style.display = "block";
+        logoutButton.style.display = "none";
+        chatContainer.style.display = "none";
+      });
 
-        document.getElementById("login-container").style.display = "none";
-        document.getElementById("chat-container").style.display = "block";
-
-        // Initialize UIKit for chatting
-        const UIKit = SendBirdUIKit.init({
-          appId: APP_ID,
+      // Initialize Sendbird Chat
+      function initializeChat(userId) {
+        const sb = SendBirdUIKit.init({
+          appId: SENDBIRD_APP_ID,
           userId: userId,
-          accessToken: data.access_token,
         });
 
-        UIKit.renderChat({
-          container: document.getElementById("sendbird-container"),
+        // Render the chat UI
+        SendBirdUIKit.render({
+          container: chatContainer,
+          channelList: { onChannelSelect: (channel) => console.log(channel) },
+          onError: (error) => console.error("Sendbird Error:", error),
         });
-      } else {
-        alert(`Error: ${data.message}`);
       }
-    });
+    })();
   </script>
 </body>
 </html>
