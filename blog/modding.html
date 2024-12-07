@@ -123,7 +123,7 @@
 
       if (code) {
         const tokenResponse = await fetch(`https://${MODIO_GAME_ID}.modapi.io/v1/oauth/token`, {
-          method: 'POST',
+          method: 'GET',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({
             client_id: MODIO_CLIENT_ID,
