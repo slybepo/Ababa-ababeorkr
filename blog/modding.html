@@ -3,114 +3,169 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mod.io Mod Upload</title>
+  <title>Mod.io Authentication & Upload</title>
   <style>
-    body {
+    /* Basic reset */
+    body, h1, h2, p {
+      margin: 0;
+      padding: 0;
       font-family: Arial, sans-serif;
-      margin: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
-    form {
-      max-width: 500px;
-      display: flex;
-      flex-direction: column;
+
+    /* General styling */
+    body {
+      background-color: #f4f7fa;
+      padding: 20px;
     }
-    input, textarea, button {
-      margin: 10px 0;
-      padding: 10px;
-      font-size: 16px;
+
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
     }
-    textarea {
-      resize: vertical;
+
+    h2 {
+      color: #333;
+      margin-bottom: 10px;
     }
+
     button {
       background-color: #007bff;
       color: white;
       border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #upload-form {
+      margin-top: 30px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    input[type="file"] {
+      margin-bottom: 15px;
+    }
+
+    form button {
+      background-color: #28a745;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
       border-radius: 5px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #0056b3;
+
+    form button:hover {
+      background-color: #218838;
+    }
+
+    /* Hide upload form until authenticated */
+    #upload-form {
+      display: none;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .success-message {
+      color: green;
+      font-size: 14px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Upload Your Mod to mod.io</h1>
-  <button id="login-button">Login with mod.io</button>
-  <div id="upload-form-container" style="display: none;">
-    <h2>Submit Mod Request</h2>
-    <form id="upload-form">
-      <input type="text" id="mod-name" placeholder="Mod Name" required>
-      <textarea id="mod-description" placeholder="Mod Description" required></textarea>
-      <input type="file" id="mod-file" required>
-      <button type="submit">Submit Mod</button>
-    </form>
+  <h1>Mod.io Authentication and Mod Upload</h1>
+
+  <!-- Login Button -->
+  <div style="text-align: center;">
+    <button id="login-button">Login with mod.io</button>
   </div>
+
+  <!-- Mod Upload Form -->
+  <div id="upload-form">
+    <h2>Upload Your Mod</h2>
+    <form id="mod-upload" enctype="multipart/form-data">
+      <label for="mod-file">Select Mod File:</label>
+      <input type="file" id="mod-file" name="mod-file" required>
+      <button type="submit">Upload Mod</button>
+    </form>
+    <p id="error-message" class="error-message" style="display: none;"></p>
+    <p id="success-message" class="success-message" style="display: none;"></p>
+  </div>
+
   <script>
-    const MODIO_CLIENT_ID = "8056"; // Replace with your mod.io client ID
-    const MODIO_REDIRECT_URI = "https://latesttaggers.site/callback"; // Replace with your app's redirect URI
-    const MODIO_API_URL = "https://g-8056.modapi.io/v1/games/8056/mods";
+    const MODIO_CLIENT_ID = '8056'; // Replace with your mod.io client ID
+    const MODIO_API_URL = 'https://g-8056.modapi.io/v1'; // Replace with your mod.io URL
+    const REDIRECT_URI = 'https://latesttaggers.site/callback'; // Replace with your page's redirect URI
 
-    let accessToken = null;
+    // Step 1: Handle Authentication
+    async function initAuth() {
+      // Check if there is an access token in the URL
+      if (window.location.hash.includes("access_token")) {
+        const token = new URLSearchParams(window.location.hash.substring(1)).get("access_token");
+        console.log("Access Token:", token);
+        
+        // Store the token in the localStorage or sessionStorage
+        localStorage.setItem("access_token", token);
 
-    // Handle OAuth login
-    document.getElementById("login-button").addEventListener("click", () => {
-      const authUrl = `https://api.mod.io/v1/oauth/authorize?response_type=token&client_id=${MODIO_CLIENT_ID}&redirect_uri=${MODIO_REDIRECT_URI}`;
-      window.location.href = authUrl;
-    });
-
-    // Parse URL for access token
-    function parseAccessToken() {
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      if (params.has("access_token")) {
-        accessToken = params.get("access_token");
+        // Hide the login button and show the upload form
         document.getElementById("login-button").style.display = "none";
-        document.getElementById("upload-form-container").style.display = "block";
+        document.getElementById("upload-form").style.display = "block";
       }
     }
 
-    // Handle form submission
-    document.getElementById("upload-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    // Step 2: Authenticate with mod.io
+    document.getElementById("login-button").addEventListener("click", function() {
+      const authUrl = `https://g-8056.modapi.io/v1/oauth/authorize?response_type=token&client_id=${MODIO_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+      window.location.href = authUrl;
+    });
 
-      const modName = document.getElementById("mod-name").value;
-      const modDescription = document.getElementById("mod-description").value;
-      const modFile = document.getElementById("mod-file").files[0];
+    // Step 3: Upload Mod
+    document.getElementById("mod-upload").addEventListener("submit", async function(event) {
+      event.preventDefault();
+      
+      // Get the access token from localStorage
+      const accessToken = localStorage.getItem("access_token");
 
       if (!accessToken) {
-        alert("Please login first!");
+        alert("You need to log in first.");
         return;
       }
 
+      const fileInput = document.getElementById("mod-file");
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
       try {
-        // Step 1: Create mod metadata
-        const metadataResponse = await fetch(`${MODIO_API_URL}/games/8056/mods`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: modName,
-            summary: modDescription,
-          }),
-        });
-
-        const metadata = await metadataResponse.json();
-
-        if (!metadata.id) {
-          throw new Error("Failed to create mod metadata");
-        }
-
-        // Step 2: Upload mod file
-        const formData = new FormData();
-        formData.append("filedata", modFile);
-
-        const fileUploadResponse = await fetch(`${MODIO_API_URL}/games/8056/mods/${metadata.id}/files`, {
+        const response = await fetch(`${MODIO_API_URL}/games/8056/mods`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${accessToken}`,
@@ -118,21 +173,30 @@
           body: formData,
         });
 
-        const fileUploadData = await fileUploadResponse.json();
-
-        if (fileUploadData.error) {
-          throw new Error(fileUploadData.error.message);
+        if (!response.ok) {
+          throw new Error("Failed to upload mod: " + response.statusText);
         }
 
-        alert("Mod uploaded successfully!");
+        const result = await response.json();
+        console.log("Mod uploaded successfully:", result);
+        
+        // Show success message
+        document.getElementById("success-message").textContent = "Mod uploaded successfully!";
+        document.getElementById("success-message").style.display = "block";
+        document.getElementById("error-message").style.display = "none";
+
       } catch (error) {
         console.error("Error uploading mod:", error);
-        alert("Failed to upload mod. Check console for details.");
+
+        // Show error message
+        document.getElementById("error-message").textContent = "Error uploading mod.";
+        document.getElementById("error-message").style.display = "block";
+        document.getElementById("success-message").style.display = "none";
       }
     });
 
-    // Check for access token on page load
-    window.onload = parseAccessToken;
+    // Initialize authentication state
+    window.onload = initAuth;
   </script>
 </body>
 </html>
