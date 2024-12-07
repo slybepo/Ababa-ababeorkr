@@ -1,448 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta property="og:title" content="Taggers">
+  <meta property="og:description" content="Welcome to Taggers. Explore the latest in gaming!">
+  <meta property="og:image" content="https://i.ibb.co/nnsJm5v/DALL-E-2024-10-25-15-02-10-A-sleek-and-futuristic-logo-featuring-the-letters-NV-for-a-VR-gaming-comp.webp">
+  <meta property="og:url" content="https://taggers.store">
+  <link rel="icon" type="image/png" href="/taggers-icon.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>For You - TikTok Clone</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
-   <style>
-    body {
-      font-family: Arial, sans-serif;
+  <title>Taggers</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body, html {
       margin: 0;
       padding: 0;
-      background: #f4f4f4;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #e8eff1;
+      color: #333;
     }
-    .header {
-      background: #007BFF;
-      color: #fff;
-      padding: 1rem;
+    footer {
       text-align: center;
-      font-size: 1.5rem;
-    }
-    .container {
-      max-width: 900px;
-      margin: 1rem auto;
       padding: 1rem;
-    }
-    .video-card {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      margin-bottom: 1.5rem;
-      padding: 1rem;
-    }
-    .video-card video {
+      background-color: #1a1a1d;
+      color: white;
+      position: fixed;
       width: 100%;
-      border-radius: 10px;
+      bottom: 0;
     }
-    .video-details {
-      margin-top: 0.5rem;
-    }
-    .username {
-      font-weight: bold;
-      color: #555;
-    }
-    .moderator {
-      color: #28a745;
-    }
-    .actions {
+
+    header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 0.5rem;
-    }
-    .actions button {
-      background: #007BFF;
-      color: #fff;
-      border: none;
+      background-color: #1a1a1d;
       padding: 0.5rem 1rem;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ffcc00;
+    }
+
+    .profile-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .profile-btn {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1rem;
+    }
+
+    .profile-btn img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      width: 200px;
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+    }
+
+    .dropdown.show {
+      display: flex;
+    }
+
+    .dropdown-item {
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      color: #333;
+      display: flex;
+      align-items: center;
+    }
+
+    .dropdown-item i {
+      margin-right: 0.5rem;
+    }
+
+    .dropdown-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .dropdown-item.logout {
+      color: #e63946;
+    }
+
+    .dropdown-header {
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #ccc;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    main {
+      padding: 1rem;
+    }
+
+    .forum-section {
+      margin-top: 2rem;
+    }
+
+    .forum-title {
+      background-color: #fff;
+      padding: 1rem;
+      border: 1px solid #ccc;
       border-radius: 5px;
       cursor: pointer;
-      transition: background 0.3s;
-    }
-    .actions button:hover {
-      background: #0056b3;
-    }
-    .search-bar {
-      margin-bottom: 1.5rem;
       display: flex;
-      gap: 0.5rem;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
     }
-    .search-bar input {
-      flex: 1;
-      padding: 0.5rem;
-      font-size: 1rem;
+
+    .forum-title:hover {
+      background-color: #f7f7f7;
+    }
+
+    .forum-content {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #fff;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-    .search-bar button {
-      padding: 0.5rem 1rem;
-      background: #007BFF;
-      color: #fff;
-      border: none;
+
+    .forum-content img {
+      max-width: 100%;
       border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s;
+      margin-bottom: 1rem;
     }
-    .search-bar button:hover {
-      background: #0056b3;
+
+    .reaction-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .reaction-container i {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #888;
+    }
+
+    .reaction-container i:hover {
+      color: #000;
+    }
+
+    .reaction-count {
+      font-size: 1rem;
+      color: #888;
+    }
+
+    .footer a {
+      color: #ffcc00;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <div class="header">For You</div>
-  <div class="container">
-    <div class="search-bar">
-      <input id="search" type="text" placeholder="Search topics...">
-      <button onclick="searchVideos()">Search</button>
-    </div>
-    <div id="video-list">
-      <!-- Video cards will be dynamically populated here -->
-    </div>
-  </div>
-  <script>
-    import { initializeApp } from "firebase/app";
-    import { getFirestore, collection, getDocs, updateDoc, doc } from "firebase/firestore";
-
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID",
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    async function fetchVideos() {
-      const videoList = document.getElementById("video-list");
-      videoList.innerHTML = "";
-
-      const querySnapshot = await getDocs(collection(db, "videos"));
-      querySnapshot.forEach((doc) => {
-        const video = doc.data();
-        const videoCard = document.createElement("div");
-        videoCard.className = "video-card";
-        videoCard.innerHTML = `
-          <video src="${video.url}" controls></video>
-          <div class="video-details">
-            <span class="username ${video.role === "moderator" ? "moderator" : ""}">
-              ${video.username}
-            </span>
-          </div>
-          <div class="actions">
-            <button onclick="likeVideo('${doc.id}', ${video.likes})">❤️ Like (${video.likes})</button>
-            <button onclick="shareVideo('${video.url}')">🔗 Share</button>
-            <button onclick="subscribeToUser('${video.username}')">➕ Subscribe</button>
-          </div>
-        `;
-        videoList.appendChild(videoCard);
-      });
-    }
-
-    async function likeVideo(videoId, currentLikes) {
-      try {
-        const videoDoc = doc(db, "videos", videoId);
-        await updateDoc(videoDoc, {
-          likes: currentLikes + 1,
-        });
-        fetchVideos();
-      } catch (error) {
-        console.error("Error liking video:", error);
-      }
-    }
-
-    function shareVideo(url) {
-      navigator.clipboard.writeText(url).then(() => {
-        alert("Video link copied to clipboard!");
-      });
-    }
-
-    function subscribeToUser(username) {
-      alert(`You subscribed to ${username}!`);
-    }
-
-    async function searchVideos() {
-      const searchInput = document.getElementById("search").value.toLowerCase();
-      const videoList = document.getElementById("video-list");
-      videoList.innerHTML = "";
-
-      const querySnapshot = await getDocs(collection(db, "videos"));
-      querySnapshot.forEach((doc) => {
-        const video = doc.data();
-        if (video.tags && video.tags.some((tag) => tag.toLowerCase().includes(searchInput))) {
-          const videoCard = document.createElement("div");
-          videoCard.className = "video-card";
-          videoCard.innerHTML = `
-            <video src="${video.url}" controls></video>
-            <div class="video-details">
-              <span class="username ${video.role === "moderator" ? "moderator" : ""}">
-                ${video.username}
-              </span>
-            </div>
-            <div class="actions">
-              <button onclick="likeVideo('${doc.id}', ${video.likes})">❤️ Like (${video.likes})</button>
-              <button onclick="shareVideo('${video.url}')">🔗 Share</button>
-              <button onclick="subscribeToUser('${video.username}')">➕ Subscribe</button>
-            </div>
-          `;
-          videoList.appendChild(videoCard);
-        }
-      });
-    }
-
-    fetchVideos();
-  </script>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>For You - TikTok Clone</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f4f4;
-    }
-    .header {
-      background: #007BFF;
-      color: #fff;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.5rem;
-    }
-    .container {
-      max-width: 900px;
-      margin: 1rem auto;
-      padding: 1rem;
-    }
-    .video-card {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      margin-bottom: 1.5rem;
-      padding: 1rem;
-    }
-    .video-card video {
-      width: 100%;
-      border-radius: 10px;
-    }
-    .video-details {
-      margin-top: 0.5rem;
-    }
-    .username {
-      font-weight: bold;
-      color: #555;
-      cursor: pointer;
-    }
-    .moderator {
-      color: #28a745;
-    }
-    .actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 0.5rem;
-    }
-    .actions button {
-      background: #007BFF;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .actions button:hover {
-      background: #0056b3;
-    }
-    .search-bar {
-      margin-bottom: 1.5rem;
-      display: flex;
-      gap: 0.5rem;
-    }
-    .search-bar input {
-      flex: 1;
-      padding: 0.5rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    .search-bar button {
-      padding: 0.5rem 1rem;
-      background: #007BFF;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .search-bar button:hover {
-      background: #0056b3;
-    }
-    #custom-prompt {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      display: none;
-    }
-    #custom-prompt input {
-      margin-top: 1rem;
-      padding: 0.5rem;
-      font-size: 1rem;
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    #custom-prompt button {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      background: #007BFF;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    #custom-prompt button:hover {
-      background: #0056b3;
-    }
-    #custom-prompt .close {
-      background: red;
-      float: right;
-    }
-      </style>
-</head>
-<body>
-  <div class="header">For You</div>
-  <div class="container">
-    <div class="upload-section">
-      <h3>Upload Video</h3>
-      <input id="video-title" type="text" placeholder="Video title">
-      <input id="video-file" type="file" accept="video/*">
-      <button onclick="uploadVideo()">Upload</button>
-    </div>
-    <div class="search-bar">
-      <input id="search" type="text" placeholder="Search topics...">
-      <button onclick="searchVideos()">Search</button>
-    </div>
-    <div id="video-list">
-      <!-- Video cards will be dynamically populated here -->
+<header>
+  <div class="logo">Taggers</div>
+  <div class="profile-container">
+    <button id="profile-btn" class="profile-btn">
+      <img id="user-avatar" src="default-avatar.png" alt="User Avatar">
+      <span id="user-name">Loading...</span>
+    </button>
+    <div id="dropdown" class="dropdown">
+      <div class="dropdown-header" id="dropdown-username">Loading...</div>
+      <div class="dropdown-item">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+      </div>
+      <a href="/store" class="dropdown-item">
+        <i class="fas fa-store"></i>
+        Store
+      </a>
+      <a href="/account/manage" class="dropdown-item">
+        <i class="fas fa-cog"></i>
+        Manage Account
+      </a>
+      <button id="logout-btn" class="dropdown-item logout">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </button>
     </div>
   </div>
-  <div id="custom-prompt">
-    <div id="prompt-content"></div>
-    <input id="prompt-input" type="text" style="display: none;">
-    <button id="prompt-confirm" onclick="handlePromptConfirm()">Confirm</button>
-    <button class="close" onclick="closePrompt()">Close</button>
-  </div>
-  <script>
-    // Firebase Configuration
-    import { initializeApp } from "firebase/app";
-    import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from "firebase/firestore";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+</header>
 
-    
-const firebaseConfig = {
-  apiKey: "AIzaSyCnunqIcpqQQ9W_afM0SkcF5BOvnWrk8V4",
-  authDomain: "ltaggers.firebaseapp.com",
-  projectId: "ltaggers",
-  storageBucket: "ltaggers.firebasestorage.app",
-  messagingSenderId: "53455186722",
-  appId: "1:53455186722:web:88d1639d08767c5588d37b",
-  measurementId: "G-6L0MS6RRHP"
-};
+<main>
+  <h2>Welcome to Taggers</h2>
+  <section class="forum-section">
+    <div class="forum-title" data-id="forum1">
+      Example Game (Quest 2, 3)
+      <i class="fas fa-chevron-down"></i>
+    </div>
+    <div id="forum1" class="forum-content">
+      <img src="https://via.placeholder.com/300" alt="Thumbnail">
+      <h1>Example Game</h1>
+      <p>Description of the cracked game.</p>
+      <h2><a class="download" href="#">Download</a></h2>
+      <div class="reaction-container">
+        <i class="fas fa-thumbs-up" data-id="up1"></i>
+        <span id="up1-count" class="reaction-count">0</span>
+        <i class="fas fa-thumbs-down" data-id="down1"></i>
+        <span id="down1-count" class="reaction-count">0</span>
+      </div>
+    </div>
+  </section>
+</main>
 
-// Initialize Firebase
+<footer>
+  © 2024 Taggers | <a href="mailto:support@taggers.com">Contact us</a>
+</footer>
+<script>
+let auth0 = null;
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+async function initAuth0() {
+  try {
+    auth0 = await createAuth0Client({
+      domain: "dev-5ousdzi3slqmqsnw.eu.auth0.com",
+      client_id: "vTGZIMoyIktLRjrwapREVNft42wuIY2Y",
+      scope: "openid profile email",
+      redirect_uri: window.location.origin,
+    });
 
-    let currentUser = { username: "user123", role: "moderator" }; // Example user
-
-    async function fetchVideos() {
-      const videoList = document.getElementById("video-list");
-      videoList.innerHTML = "";
-
-      const querySnapshot = await getDocs(collection(db, "videos"));
-      querySnapshot.forEach((doc) => {
-        const video = doc.data();
-        const videoCard = document.createElement("div");
-        videoCard.className = "video-card";
-        videoCard.innerHTML = `
-          <video src="${video.url}" controls></video>
-          <div class="video-details">
-            <span class="username ${video.role === "moderator" ? "moderator" : ""}" onclick="viewProfile('${video.username}')">
-              ${video.username}
-            </span>
-          </div>
-          <div class="actions">
-            <button onclick="likeVideo('${doc.id}', ${video.likes})">❤️ Like (${video.likes})</button>
-            <button onclick="openPrompt('Share this video URL:', 'copy', '${video.url}')">🔗 Share</button>
-            ${currentUser.role === "moderator" && video.username !== currentUser.username 
-              ? `<button onclick="openPrompt('Ban ${video.username}?', 'banUser', '${video.username}')">🚫 Ban</button>` 
-              : ""}
-          </div>
-        `;
-        videoList.appendChild(videoCard);
-      });
+    const query = window.location.search;
+    if (query.includes("code=") && query.includes("state=")) {
+      await auth0.handleRedirectCallback();
+      window.history.replaceState({}, document.title, "/");
     }
 
-    async function uploadVideo() {
-      const title = document.getElementById("video-title").value;
-      const file = document.getElementById("video-file").files[0];
-      if (!title || !file) {
-        alert("Please provide a title and a video file.");
-        return;
-      }
+    const isAuthenticated = await auth0.isAuthenticated();
 
-      const storageRef = ref(storage, `videos/${file.name}`);
-      await uploadBytes(storageRef, file);
-
-      const videoURL = await getDownloadURL(storageRef);
-
-      await addDoc(collection(db, "videos"), {
-        username: currentUser.username,
-        role: currentUser.role,
-        title: title,
-        url: videoURL,
-        likes: 0,
-      });
-
-      alert("Video uploaded successfully!");
-      fetchVideos();
+    if (isAuthenticated) {
+      const accessToken = await auth0.getTokenSilently();
+      await fetchUserInfo(accessToken);
+    } else {
+      auth0.loginWithRedirect();
     }
+  } catch (error) {
+    console.error("Error during Auth0 initialization:", error);
+  }
+}
 
-    async function banUser(username) {
-      const querySnapshot = await getDocs(collection(db, "users"));
-      querySnapshot.forEach(async (doc) => {
-        if (doc.data().username === username) {
-          await deleteDoc(doc.ref);
-        }
-      });
-      alert(`${username} has been banned.`);
-    }
+async function fetchUserInfo(accessToken) {
+  try {
+    const response = await axios.get("https://dev-5ousdzi3slqmqsnw.eu.auth0.com/userinfo", {
+      headers: {
+        Authorization: Bearer ${accessToken},
+      },
+    });
 
-    fetchVideos();
-  </script>
+    const userInfo = response.data;
+    document.getElementById("user-name").textContent = userInfo.name || "Unknown User";
+    document.getElementById("user-avatar").src = userInfo.picture || "default-avatar.png";
+    document.getElementById("dropdown-username").textContent = Logged in as ${userInfo.name};
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+  }
+}
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    await auth0.logout({ returnTo: window.location.origin });
+  });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const profileBtn = document.getElementById("profile-btn");
+  const dropdown = document.getElementById("dropdown");
+
+  profileBtn.addEventListener("click", () => {
+    dropdown.classList.toggle("show");
+  });
+
+  initAuth0();
+  // Authentication and event handling logic (similar to your original code)
+</script>
 </body>
 </html>
