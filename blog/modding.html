@@ -5,30 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mod.io Authentication & Upload</title>
   <style>
-    /* Basic reset */
-    body, h1, h2, p {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
-
-    /* General styling */
     body {
+      font-family: Arial, sans-serif;
       background-color: #f4f7fa;
       padding: 20px;
+      text-align: center;
     }
-
     h1 {
       color: #333;
-      text-align: center;
       margin-bottom: 20px;
     }
-
-    h2 {
-      color: #333;
-      margin-bottom: 10px;
-    }
-
     button {
       background-color: #007bff;
       color: white;
@@ -39,11 +25,9 @@
       border-radius: 5px;
       transition: background-color 0.3s ease;
     }
-
     button:hover {
       background-color: #0056b3;
     }
-
     #upload-form {
       margin-top: 30px;
       background-color: #fff;
@@ -53,22 +37,19 @@
       max-width: 500px;
       margin-left: auto;
       margin-right: auto;
+      display: none;
     }
-
     form {
       display: flex;
       flex-direction: column;
     }
-
     label {
       font-size: 14px;
       margin-bottom: 5px;
     }
-
     input[type="file"] {
       margin-bottom: 15px;
     }
-
     form button {
       background-color: #28a745;
       border: none;
@@ -78,22 +59,14 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
     form button:hover {
       background-color: #218838;
     }
-
-    /* Hide upload form until authenticated */
-    #upload-form {
-      display: none;
-    }
-
     .error-message {
       color: red;
       font-size: 14px;
       margin-top: 10px;
     }
-
     .success-message {
       color: green;
       font-size: 14px;
@@ -103,13 +76,11 @@
 </head>
 <body>
   <h1>Mod.io Authentication and Mod Upload</h1>
-
-  <!-- Login Button -->
-  <div style="text-align: center;">
+  
+  <div>
     <button id="login-button">Login with mod.io</button>
   </div>
-
-  <!-- Mod Upload Form -->
+  
   <div id="upload-form">
     <h2>Upload Your Mod</h2>
     <form id="mod-upload" enctype="multipart/form-data">
@@ -122,39 +93,36 @@
   </div>
 
   <script>
-    const MODIO_CLIENT_ID = '8056'; // Replace with your mod.io client ID
-    const MODIO_API_URL = 'https://g-8056.modapi.io/v1'; // Replace with your mod.io URL
-    const REDIRECT_URI = 'https://latesttaggers.site/callback'; // Replace with your page's redirect URI
+    const MODIO_CLIENT_ID = '8056'; // Your client ID
+    const MODIO_CLIENT_SECRET = 'a23cf8805fed41bb44a736e2845cc4d1'; // Your client secret
+    const MODIO_API_URL = 'https://g-8056.modapi.io/v1'; // Your mod.io API URL
+    const REDIRECT_URI = 'https://latesttaggers.site/blog/modding'; // Redirect URI for OAuth (replace with your page's URL)
+    const GAME_ID = 'starfire-taggers'; // Replace with your game ID
 
-    // Step 1: Handle Authentication
+    // Step 1: Handle OAuth and check for access token in URL
     async function initAuth() {
-      // Check if there is an access token in the URL
       if (window.location.hash.includes("access_token")) {
         const token = new URLSearchParams(window.location.hash.substring(1)).get("access_token");
-        console.log("Access Token:", token);
-        
-        // Store the token in the localStorage or sessionStorage
         localStorage.setItem("access_token", token);
-
-        // Hide the login button and show the upload form
+        
+        // Hide login button and show upload form
         document.getElementById("login-button").style.display = "none";
         document.getElementById("upload-form").style.display = "block";
       }
     }
 
-    // Step 2: Authenticate with mod.io
+    // Step 2: Trigger mod.io OAuth login
     document.getElementById("login-button").addEventListener("click", function() {
       const authUrl = `https://g-8056.modapi.io/v1/oauth/authorize?response_type=token&client_id=${MODIO_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
       window.location.href = authUrl;
     });
 
-    // Step 3: Upload Mod
+    // Step 3: Upload mod to mod.io
     document.getElementById("mod-upload").addEventListener("submit", async function(event) {
       event.preventDefault();
       
       // Get the access token from localStorage
       const accessToken = localStorage.getItem("access_token");
-
       if (!accessToken) {
         alert("You need to log in first.");
         return;
@@ -165,7 +133,7 @@
       formData.append("file", fileInput.files[0]);
 
       try {
-        const response = await fetch(`${MODIO_API_URL}/games/8056/mods`, {
+        const response = await fetch(`${MODIO_API_URL}/games/${GAME_ID}/mods`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${accessToken}`,
@@ -174,7 +142,7 @@
         });
 
         if (!response.ok) {
-          throw new Error("Failed to upload mod: " + response.statusText);
+          throw new Error("Failed to upload mod.");
         }
 
         const result = await response.json();
@@ -184,6 +152,9 @@
         document.getElementById("success-message").textContent = "Mod uploaded successfully!";
         document.getElementById("success-message").style.display = "block";
         document.getElementById("error-message").style.display = "none";
+        
+        // Step 4: Send push notification after mod approval
+        sendPushNotification();
 
       } catch (error) {
         console.error("Error uploading mod:", error);
@@ -195,7 +166,41 @@
       }
     });
 
-    // Initialize authentication state
+    // Step 5: Push notification after mod is approved
+    async function sendPushNotification() {
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) {
+        console.error("No access token found!");
+        return;
+      }
+
+      const pushNotificationData = {
+        title: "Mod Uploaded Successfully!",
+        message: "Your mod has been successfully uploaded and is under review.",
+        // Include any additional push notification data here
+      };
+
+      try {
+        const response = await fetch(`${MODIO_API_URL}/push_notifications`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(pushNotificationData),
+        });
+
+        if (response.ok) {
+          console.log("Push notification sent!");
+        } else {
+          throw new Error("Failed to send push notification.");
+        }
+
+      } catch (error) {
+        console.error("Error sending push notification:", error);
+      }
+    }
+
     window.onload = initAuth;
   </script>
 </body>
