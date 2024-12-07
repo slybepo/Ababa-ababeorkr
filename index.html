@@ -193,7 +193,7 @@
     </div>
   </div>
 </header>
-<h1> Suggested for you <span id="user-name"></span>!</h1>
+<h1> Suggested for you <span id="user-name">user</span>!</h1>
 <main>
   <div class="card">
     <div class="user-info">
@@ -233,7 +233,7 @@
     const isAuthenticated = await auth0.isAuthenticated();
     if (isAuthenticated) {
       const user = await auth0.getUser();
-      document.getElementById("user-name").textContent = user.name || "";
+      document.getElementById("user-name").textContent = user.name || "guest";
       document.getElementById("user-avatar").src = user.picture || "default-avatar.png";
     } else {
       auth0.loginWithRedirect();
