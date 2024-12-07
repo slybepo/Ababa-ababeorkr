@@ -1,253 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta property="og:title" content="Taggers">
-  <meta property="og:description" content="Welcome to Taggers. Explore the latest in gaming!">
-  <meta property="og:image" content="https://i.ibb.co/nnsJm5v/DALL-E-2024-10-25-15-02-10-A-sleek-and-futuristic-logo-featuring-the-letters-NV-for-a-VR-gaming-comp.webp">
-  <meta property="og:url" content="https://taggers.store">
-  <link rel="icon" type="image/png" href="/taggers-icon.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Taggers</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/1.20/auth0-spa-js.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <style>
-    /* Styling (same as before, unchanged) */
-    body, html {
+    /* Basic styles for layout */
+    body {
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f5f5f5;
-      color: #333;
     }
 
     header {
+      background-color: #1a1a1d;
+      padding: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: #1a1a1d;
-      padding: 0.5rem 1rem;
       color: white;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #ffcc00;
-    }
-
-    .profile-container {
-      position: relative;
     }
 
     .profile-btn {
+      cursor: pointer;
       display: flex;
       align-items: center;
-      cursor: pointer;
-      background: none;
-      border: none;
-      color: white;
-      font-size: 1rem;
     }
 
     .profile-btn img {
-      width: 35px;
-      height: 35px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      margin-right: 0.5rem;
-    }
-
-    .dropdown {
-      position: absolute;
-      top: 50px;
-      right: 0;
-      background-color: white;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      width: 200px;
-      display: none;
-      flex-direction: column;
-      z-index: 1000;
-    }
-
-    .dropdown.show {
-      display: flex;
-    }
-
-    .dropdown-item {
-      padding: 0.5rem 1rem;
-      text-decoration: none;
-      color: #333;
-      display: flex;
-      align-items: center;
-    }
-
-    .dropdown-item i {
-      margin-right: 0.5rem;
-    }
-
-    .dropdown-item:hover {
-      background-color: #f0f0f0;
-    }
-
-    .dropdown-item.logout {
-      color: #e63946;
+      margin-right: 10px;
     }
 
     main {
-      padding: 1rem;
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .user-info img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      margin-right: 1rem;
-    }
-
-    .user-info .name {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-
-    .user-info .role {
-      font-size: 0.9rem;
-      color: #ffcc00;
-      font-weight: bold;
-      margin-left: 0.5rem;
-      animation: glow 1.5s infinite;
-    }
-
-    @keyframes glow {
-      0% { text-shadow: 0 0 5px #ffcc00, 0 0 10px #ffcc00; }
-      50% { text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00; }
-      100% { text-shadow: 0 0 5px #ffcc00, 0 0 10px #ffcc00; }
+      padding: 20px;
     }
 
     .card {
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-      padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .card iframe {
-      width: 100%;
-      height: 200px;
-      border: none;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-    }
-
-    .reaction-container {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .reaction-container i {
-      font-size: 1.5rem;
+      font-size: 1.5em;
+      margin-right: 10px;
       cursor: pointer;
-      color: #888;
-    }
-
-    .reaction-container i:hover {
-      color: #000;
     }
 
     .reaction-count {
-      font-size: 1rem;
-      color: #888;
+      font-size: 1.2em;
+      margin-right: 20px;
     }
   </style>
 </head>
 <body>
-<header>
-  <div class="logo">Taggers</div>
-  <div class="profile-container">
-    <button id="profile-btn" class="profile-btn">
-      <img id="user-avatar" src="default-avatar.png" alt="User Avatar">
-      <span id="user-name">Login</span>
-    </button>
-    <div id="dropdown" class="dropdown">
-      <a class="dropdown-item" href="/profile">
-        <i class="fas fa-user"></i>
-        Profile
-      </a>
-      <a class="dropdown-item" href="/store">
-        <i class="fas fa-store"></i>
-        Store
-      </a>
-      <button class="dropdown-item logout" id="logout-btn">
-        <i class="fas fa-sign-out-alt"></i>
-        Logout
+  <header>
+    <div>Taggers</div>
+    <div id="profile-container">
+      <button id="profile-btn" class="profile-btn">
+        <img id="user-avatar" src="default-avatar.png" alt="User Avatar">
+        <span id="user-name">Login</span>
       </button>
     </div>
-  </div>
-</header>
-
-<main>
-  
-
-  <div class="card">
-    <p><div class="user-info">
-    <img src="https://i.ibb.co/sgWd4kb/DALL-E-2024-10-25-15-02-10-A-sleek-and-futuristic-logo-featuring-the-letters-NV-for-a-VR-gaming-comp.png" alt="Avatar">
-    <div>
-      <span class="name">Moussaa</span>
-      <span class="role">• Co-Owner</span>
+  </header>
+  <main>
+    <div class="card">
+      <div class="user-info">
+        <img src="https://i.ibb.co/sgWd4kb/DALL-E-2024-10-25-15-02-10-A-sleek-and-futuristic-logo-featuring-the-letters-NV-for-a-VR-gaming-comp.png" alt="Avatar" width="50">
+        <strong>Moussaa • Co-Owner</strong>
+      </div>
+      <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" width="100%" height="300px"></iframe>
+      <div class="reaction-container">
+        <i id="like-video1" class="fas fa-thumbs-up" onclick="handleReaction('like', 'video1')"></i>
+        <span id="like-count-video1" class="reaction-count">0</span>
+        <i id="dislike-video1" class="fas fa-thumbs-down" onclick="handleReaction('dislike', 'video1')"></i>
+        <span id="dislike-count-video1" class="reaction-count">0</span>
+      </div>
     </div>
-    </div></p>
-    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video"></iframe>
-    <div class="reaction-container">
-      <i class="fas fa-thumbs-up" onclick="updateReaction('like', 'video1')"></i>
-      <span id="like-video1" class="reaction-count">0</span>
-      <i class="fas fa-thumbs-down" onclick="updateReaction('dislike', 'video1')"></i>
-      <span id="dislike-video1" class="reaction-count">0</span>
-    </div>
-  </div>
-</main>
+  </main>
+  <script>
+    const API_URL = "https://your-backend-api.com"; // Replace with your backend URL
+    let auth0 = null;
 
-<script>
-  const user = {
-    loggedIn: true,
-    name: "John Doe",
-    avatar: "user-avatar.png"
-  };
+    async function initAuth0() {
+      auth0 = await createAuth0Client({
+        domain: "dev-5ousdzi3slqmqsnw.eu.auth0.com",
+        client_id: "vTGZIMoyIktLRjrwapREVNft42wuIY2Y",
+        scope: "openid profile email",
+        redirect_uri: window.location.origin,
+      });
 
-  if (user.loggedIn) {
-    document.getElementById("user-avatar").src = user.avatar;
-    document.getElementById("user-name").textContent = user.name;
-  }
+      if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+        await auth0.handleRedirectCallback();
+        window.history.replaceState({}, document.title, "/");
+      }
 
-  const updateReaction = (type, id) => {
-    const count = document.getElementById(`${type}-${id}`);
-    count.textContent = parseInt(count.textContent) + 1;
-  };
-
-  document.getElementById("profile-btn").addEventListener("click", () => {
-    const dropdown = document.getElementById("dropdown");
-    dropdown.classList.toggle("show");
-  });
-
-  window.onclick = function(event) {
-    if (!event.target.matches('.profile-btn, .profile-btn *')) {
-      const dropdown = document.getElementById("dropdown");
-      if (dropdown.classList.contains("show")) {
-        dropdown.classList.remove("show");
+      const isAuthenticated = await auth0.isAuthenticated();
+      if (isAuthenticated) {
+        const user = await auth0.getUser();
+        document.getElementById("user-name").textContent = user.name || "Unknown User";
+        document.getElementById("user-avatar").src = user.picture || "default-avatar.png";
+      } else {
+        auth0.loginWithRedirect();
       }
     }
-  };
-</script>
+
+    async function fetchReactions(videoId) {
+      try {
+        const response = await axios.get(`${API_URL}/reactions/${videoId}`);
+        const { likes, dislikes } = response.data;
+        document.getElementById(`like-count-${videoId}`).textContent = likes;
+        document.getElementById(`dislike-count-${videoId}`).textContent = dislikes;
+      } catch (error) {
+        console.error("Error fetching reactions:", error);
+      }
+    }
+
+    async function handleReaction(type, videoId) {
+      try {
+        const token = await auth0.getTokenSilently();
+        const response = await axios.post(`${API_URL}/reactions/${videoId}`, {
+          type: type,
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.success) {
+          fetchReactions(videoId);
+        } else {
+          alert(response.data.message || "Unable to update reaction");
+        }
+      } catch (error) {
+        console.error("Error handling reaction:", error);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initAuth0();
+      fetchReactions("video1");
+    });
+  </script>
 </body>
 </html>
