@@ -3,205 +3,176 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mod.io Authentication & Upload</title>
+  <title>Sign In and Upload Mod</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f7fa;
-      padding: 20px;
-      text-align: center;
-    }
-    h1 {
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
       color: #333;
-      margin-bottom: 20px;
     }
-    button {
-      background-color: #007bff;
+
+    header {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    #login-button {
+      display: block;
+      width: 200px;
+      margin: 50px auto;
+      padding: 10px;
+      background-color: #0066cc;
       color: white;
       border: none;
-      padding: 10px 20px;
       cursor: pointer;
       font-size: 16px;
       border-radius: 5px;
       transition: background-color 0.3s ease;
     }
-    button:hover {
-      background-color: #0056b3;
+
+    #login-button:hover {
+      background-color: #004d99;
     }
+
     #upload-form {
-      margin-top: 30px;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
       display: none;
+      text-align: center;
+      margin-top: 20px;
     }
-    form {
-      display: flex;
-      flex-direction: column;
+
+    #mod-upload-form input[type="file"] {
+      margin: 20px 0;
     }
-    label {
-      font-size: 14px;
-      margin-bottom: 5px;
-    }
-    input[type="file"] {
-      margin-bottom: 15px;
-    }
-    form button {
-      background-color: #28a745;
-      border: none;
+
+    #mod-upload-form button {
       padding: 10px 20px;
-      font-size: 16px;
+      background-color: #28a745;
       color: white;
-      border-radius: 5px;
+      border: none;
       cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
     }
-    form button:hover {
+
+    #mod-upload-form button:hover {
       background-color: #218838;
     }
-    .error-message {
-      color: red;
-      font-size: 14px;
-      margin-top: 10px;
+
+    #status-message {
+      margin-top: 20px;
+      font-weight: bold;
     }
-    .success-message {
-      color: green;
-      font-size: 14px;
-      margin-top: 10px;
+
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
     }
+
   </style>
 </head>
 <body>
-  <h1>Mod.io Authentication and Mod Upload</h1>
-  
-  <div>
-    <button id="login-button">Login with mod.io</button>
-  </div>
-  
+  <header>
+    <h1>Sign in with mod.io</h1>
+  </header>
+
+  <button id="login-button">Login with mod.io</button>
+
   <div id="upload-form">
     <h2>Upload Your Mod</h2>
-    <form id="mod-upload" enctype="multipart/form-data">
-      <label for="mod-file">Select Mod File:</label>
-      <input type="file" id="mod-file" name="mod-file" required>
+    <form id="mod-upload-form">
+      <input type="file" id="mod-file" required />
       <button type="submit">Upload Mod</button>
     </form>
-    <p id="error-message" class="error-message" style="display: none;"></p>
-    <p id="success-message" class="success-message" style="display: none;"></p>
+    <p id="status-message"></p>
   </div>
 
-  <script>
-    const MODIO_CLIENT_ID = '8056'; // Your client ID
-    const MODIO_CLIENT_SECRET = 'a23cf8805fed41bb44a736e2845cc4d1'; // Your client secret
-    const MODIO_API_URL = 'https://api.mod.io/v1'; // Your mod.io API URL
-    const REDIRECT_URI = 'https://latesttaggers.site/blog/modding'; // Redirect URI for OAuth (replace with your page's URL)
-    const GAME_ID = 'starfire-taggers'; // Replace with your game ID
+  <footer>
+    <p>&copy; 2024 Your Game Studio</p>
+  </footer>
 
-    // Step 1: Handle OAuth and check for access token in URL
-    async function initAuth() {
-      if (window.location.hash.includes("access_token")) {
-        const token = new URLSearchParams(window.location.hash.substring(1)).get("access_token");
-        localStorage.setItem("access_token", token);
-        
-        // Hide login button and show upload form
+  <script>
+    const MODIO_CLIENT_ID = '8056'; // Replace with your Client ID
+    const REDIRECT_URI = 'https://latesttaggers.site/callback'; // Replace with your redirect URI
+    const GAME_ID = 'starfire-taggers'; // Replace with your Game ID
+
+    // Redirect the user to the mod.io OAuth authorization page
+    document.getElementById("login-button").addEventListener("click", function() {
+      const authUrl = `https://mod.io/authorize?response_type=code&client_id=${MODIO_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=read write&state=${generateRandomState()}`;
+      window.location.href = authUrl;
+    });
+
+    // Handle the OAuth redirect and exchange the code for an access token
+    async function handleOAuthRedirect() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      const state = urlParams.get("state");
+
+      if (code) {
+        const tokenResponse = await fetch(`https://g-${GAME_ID}.modapi.io/v1/oauth/token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            client_id: MODIO_CLIENT_ID,
+            client_secret: 'a23cf8805fed41bb44a736e2845cc4d1', // Replace with your Client Secret
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: REDIRECT_URI
+          })
+        });
+
+        const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
+
+        localStorage.setItem('modio_access_token', accessToken);
         document.getElementById("login-button").style.display = "none";
         document.getElementById("upload-form").style.display = "block";
       }
     }
 
-    // Step 2: Trigger mod.io OAuth login
-    document.getElementById("login-button").addEventListener("click", function() {
-      const authUrl = `https://g-8056.modapi.io/v1/oauth/authorize?response_type=token&client_id=${MODIO_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
-      window.location.href = authUrl;
-    });
-
-    // Step 3: Upload mod to mod.io
-    document.getElementById("mod-upload").addEventListener("submit", async function(event) {
+    // Handle mod upload submission
+    document.getElementById("mod-upload-form").addEventListener("submit", async function(event) {
       event.preventDefault();
-      
-      // Get the access token from localStorage
-      const accessToken = localStorage.getItem("access_token");
-      if (!accessToken) {
-        alert("You need to log in first.");
-        return;
-      }
 
       const fileInput = document.getElementById("mod-file");
+      const file = fileInput.files[0];
+
+      const accessToken = localStorage.getItem('modio_access_token');
+      if (!accessToken) return;
+
       const formData = new FormData();
-      formData.append("file", fileInput.files[0]);
+      formData.append("file", file);
 
-      try {
-        const response = await fetch(`${MODIO_API_URL}/games/${GAME_ID}/mods`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-          },
-          body: formData,
-        });
+      const response = await fetch(`https://api.mod.io/v1/games/${GAME_ID}/mods`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${accessToken}` },
+        body: formData
+      });
 
-        if (!response.ok) {
-          throw new Error("Failed to upload mod.");
-        }
-
-        const result = await response.json();
-        console.log("Mod uploaded successfully:", result);
-        
-        // Show success message
-        document.getElementById("success-message").textContent = "Mod uploaded successfully!";
-        document.getElementById("success-message").style.display = "block";
-        document.getElementById("error-message").style.display = "none";
-        
-        // Step 4: Send push notification after mod approval
-        sendPushNotification();
-
-      } catch (error) {
-        console.error("Error uploading mod:", error);
-
-        // Show error message
-        document.getElementById("error-message").textContent = "Error uploading mod.";
-        document.getElementById("error-message").style.display = "block";
-        document.getElementById("success-message").style.display = "none";
-      }
+      const result = await response.json();
+      document.getElementById("status-message").innerText = result.success ? 'Mod uploaded successfully!' : 'Error uploading mod.';
     });
 
-    // Step 5: Push notification after mod is approved
-    async function sendPushNotification() {
-      const accessToken = localStorage.getItem("access_token");
-      if (!accessToken) {
-        console.error("No access token found!");
-        return;
-      }
-
-      const pushNotificationData = {
-        title: "Mod Uploaded Successfully!",
-        message: "Your mod has been successfully uploaded and is under review.",
-        // Include any additional push notification data here
-      };
-
-      try {
-        const response = await fetch(`${MODIO_API_URL}/push_notifications`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(pushNotificationData),
-        });
-
-        if (response.ok) {
-          console.log("Push notification sent!");
-        } else {
-          throw new Error("Failed to send push notification.");
-        }
-
-      } catch (error) {
-        console.error("Error sending push notification:", error);
-      }
+    if (window.location.search.includes('code')) {
+      handleOAuthRedirect();
     }
 
-    window.onload = initAuth;
+    function generateRandomState() {
+      return 'state-' + Math.random().toString(36).substr(2, 9);
+    }
   </script>
 </body>
 </html>
