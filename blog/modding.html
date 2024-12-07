@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mod.io Mod Upload</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    form {
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+    }
+    input, textarea, button {
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Upload Your Mod to mod.io</h1>
+  <button id="login-button">Login with mod.io</button>
+  <div id="upload-form-container" style="display: none;">
+    <h2>Submit Mod Request</h2>
+    <form id="upload-form">
+      <input type="text" id="mod-name" placeholder="Mod Name" required>
+      <textarea id="mod-description" placeholder="Mod Description" required></textarea>
+      <input type="file" id="mod-file" required>
+      <button type="submit">Submit Mod</button>
+    </form>
+  </div>
+  <script>
+    const MODIO_CLIENT_ID = "8056"; // Replace with your mod.io client ID
+    const MODIO_REDIRECT_URI = "https://latesttaggers.site/blog/modding"; // Replace with your app's redirect URI
+    const MODIO_API_URL = "https://g-8056.modapi.io/v1";
+
+    let accessToken = null;
+
+    // Handle OAuth login
+    document.getElementById("login-button").addEventListener("click", () => {
+      const authUrl = `https://api.mod.io/v1/oauth/authorize?response_type=token&client_id=${MODIO_CLIENT_ID}&redirect_uri=${MODIO_REDIRECT_URI}`;
+      window.location.href = authUrl;
+    });
+
+    // Parse URL for access token
+    function parseAccessToken() {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      if (params.has("access_token")) {
+        accessToken = params.get("access_token");
+        document.getElementById("login-button").style.display = "none";
+        document.getElementById("upload-form-container").style.display = "block";
+      }
+    }
+
+    // Handle form submission
+    document.getElementById("upload-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const modName = document.getElementById("mod-name").value;
+      const modDescription = document.getElementById("mod-description").value;
+      const modFile = document.getElementById("mod-file").files[0];
+
+      if (!accessToken) {
+        alert("Please login first!");
+        return;
+      }
+
+      try {
+        // Step 1: Create mod metadata
+        const metadataResponse = await fetch(`${MODIO_API_URL}/games/YOUR_GAME_ID/mods`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: modName,
+            summary: modDescription,
+          }),
+        });
+
+        const metadata = await metadataResponse.json();
+
+        if (!metadata.id) {
+          throw new Error("Failed to create mod metadata");
+        }
+
+        // Step 2: Upload mod file
+        const formData = new FormData();
+        formData.append("filedata", modFile);
+
+        const fileUploadResponse = await fetch(`${MODIO_API_URL}/games/YOUR_GAME_ID/mods/${metadata.id}/files`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+          },
+          body: formData,
+        });
+
+        const fileUploadData = await fileUploadResponse.json();
+
+        if (fileUploadData.error) {
+          throw new Error(fileUploadData.error.message);
+        }
+
+        alert("Mod uploaded successfully!");
+      } catch (error) {
+        console.error("Error uploading mod:", error);
+        alert("Failed to upload mod. Check console for details.");
+      }
+    });
+
+    // Check for access token on page load
+    window.onload = parseAccessToken;
+  </script>
+</body>
+</html>
