@@ -62,8 +62,8 @@
         <span class="role">• Co-Owner</span>
       </div>
     </div>
-    <p>hello <span id="user3"></span>, check out this video about latest taggers!</p>
-    <iframe src="https://www.youtube.com/embed/klJrNnIU5GY&t" title="YouTube video"></iframe>
+    <p>hello <span id="user4"></span>, check out this video about latest taggers!</p>
+    <iframe src="https://www.youtube.com/embed/klJrNnIU5GY" title="YouTube video"></iframe>
     <div class="reaction-container">
       <i class="fas fa-thumbs-up" onclick="handleReaction('like', 'video2')"></i>
       <span id="like-count-video2" class="reaction-count">0</span>
@@ -145,6 +145,7 @@ I will try to get this fixed soon!! but for now only people who originally had t
       document.getElementById("user-name").textContent = user.name || "guest";
       document.getElementById("user-name2").textContent = user.name || "guest";
       document.getElementById("user3").textContent = user.name || "guest";
+       document.getElementById("user4").textContent = user.name || "guest";
       document.getElementById("user-avatar").src = user.picture || "default-avatar.png";
     } else {
       auth0.loginWithRedirect();
