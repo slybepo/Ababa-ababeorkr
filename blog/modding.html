@@ -5,242 +5,221 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mod.io Integration</title>
   <style>
+    /* General Styles */
     body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      background-color: #000000;
-      color: #ffffff;
       margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
     }
 
+    /* Navbar */
     .navbar {
-      background-color: #007bff;
-      padding: 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 10px 20px;
+      background-color: #1E88E5;
+    }
+
+    .navbar .logo {
+      font-size: 20px;
+      font-weight: bold;
       color: white;
     }
 
-    .navbar h1 {
-      margin: 0;
-      font-size: 24px;
-    }
-
-    .navbar .user-info {
+    .navbar .user-menu {
       position: relative;
     }
 
-    .navbar .user-info img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      top: 50px;
-      right: 0;
-      background-color: #1e1e1e;
-      border: 1px solid #444;
-      border-radius: 4px;
-      display: none;
-      padding: 10px;
-      text-align: left;
-      z-index: 10;
-    }
-
-    .dropdown-menu button {
-      display: block;
+    .navbar .user-menu button {
       background: none;
       color: white;
-      padding: 5px 10px;
       border: none;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .dropdown-menu button:hover {
-      background-color: #333;
-    }
-
-    .container {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .content {
-      background: #2e2e2e;
-      padding: 20px;
-      border-radius: 8px;
-      width: 100%;
-      max-width: 500px;
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    h1, h2 {
-      color: #ffffff;
-    }
-
-    button {
-      padding: 10px 20px;
-      background: none;
-      color: white;
-      border: 2px solid white;
-      border-radius: 4px;
       cursor: pointer;
       font-size: 16px;
-      margin-top: 10px;
     }
 
-    button:hover, button:focus {
-      background-color: #007bff;
-      border-color: #0056b3;
-    }
-
-    input, textarea, select {
-      width: calc(100% - 20px);
-      margin: 10px 0;
-      padding: 10px;
-      border: 1px solid #444;
+    .navbar .dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #333;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
       border-radius: 4px;
-      background-color: #444;
-      color: white;
+      overflow: hidden;
     }
 
-    input:disabled, textarea:disabled {
-      background-color: #333;
-      color: #777;
+    .navbar .dropdown a {
+      display: block;
+      padding: 10px;
+      color: white;
+      text-decoration: none;
+    }
+
+    .navbar .dropdown a:hover {
+      background: #444;
+    }
+
+    .navbar .user-menu:hover .dropdown {
+      display: block;
+    }
+
+    /* Container */
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #1E1E1E;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .container h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .container form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .container form input,
+    .container form textarea,
+    .container form button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #555;
+    }
+
+    .container form button {
+      background: #1E88E5;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .container form button:hover {
+      background: #1565C0;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="navbar">
-    <h1>Mod.io Mods</h1>
-    <div id="user-info" class="user-info">
-      <img id="user-avatar" src="" alt="User Avatar">
-      <div class="dropdown-menu" id="dropdown-menu">
-        <button id="logout-button">Logout</button>
+    <div class="logo">Mod.io Integration</div>
+    <div class="user-menu">
+      <button id="user-button">Login</button>
+      <div class="dropdown">
+        <a href="#" id="login-link">Login with Mod.io</a>
+        <a href="#" id="logout-link" class="hidden">Logout</a>
       </div>
     </div>
   </div>
 
   <div class="container">
-    <div class="content">
-      <h2>Submit a Mod</h2>
-      <form id="mod-upload-form">
-        <input type="text" id="mod-name" placeholder="Mod Name" required disabled>
-        <textarea id="mod-description" placeholder="Mod Description" rows="5" required disabled></textarea>
-        <input type="file" id="mod-file" required disabled>
-        <button type="button" id="submit-mod-button" disabled>Submit Mod</button>
-      </form>
-      <p id="login-message">Please log in to upload mods.</p>
-    </div>
+    <h1>Upload Your Mod</h1>
+    <form id="mod-upload-form" class="hidden">
+      <input type="text" id="mod-title" placeholder="Title" required>
+      <textarea id="mod-description" placeholder="Description" rows="4" required></textarea>
+      <input type="text" id="mod-version" placeholder="Version (e.g., 1.0.0)" required>
+      <input type="file" id="mod-file" accept=".zip,.rar,.7z" required>
+      <button type="button" id="upload-mod-button">Submit Mod</button>
+    </form>
+    <p id="not-logged-in-message">You need to log in to upload mods.</p>
   </div>
 
   <script>
     const MODIO_CLIENT_ID = '34180771';
+    const MODIO_GAME_ID = 'starfire-taggers';
     const REDIRECT_URI = "https://latesttaggers.site/blog/modding";
-    const API_BASE = "https://api.mod.io/v1";
+    const CLIENT_SECRET = 'a23cf8805fed41bb44a736e2845cc4d1';
 
     document.addEventListener('DOMContentLoaded', () => {
-      handleOAuthRedirect();
+      checkLoginStatus();
 
-      document.getElementById('logout-button').addEventListener('click', () => {
+      document.getElementById('login-link').addEventListener('click', () => {
+        const state = generateRandomState();
+        const authUrl = `https://mod.io/authorize?response_type=code&client_id=${MODIO_CLIENT_ID}&grant_type=authorization_code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=read write&state=${state}`;
+        window.location.href = authUrl;
+      });
+
+      document.getElementById('logout-link').addEventListener('click', () => {
         localStorage.removeItem('modio_access_token');
-        window.location.reload();
+        checkLoginStatus();
       });
 
-      const avatar = document.getElementById('user-avatar');
-      const dropdownMenu = document.getElementById('dropdown-menu');
-      avatar.addEventListener('click', () => {
-        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-      });
-
-      document.getElementById('submit-mod-button').addEventListener('click', async () => {
-        const modName = document.getElementById('mod-name').value;
-        const modDescription = document.getElementById('mod-description').value;
-        const modFile = document.getElementById('mod-file').files[0];
+      document.getElementById('upload-mod-button').addEventListener('click', async () => {
+        const title = document.getElementById('mod-title').value;
+        const description = document.getElementById('mod-description').value;
+        const version = document.getElementById('mod-version').value;
+        const fileInput = document.getElementById('mod-file');
         const accessToken = localStorage.getItem('modio_access_token');
 
-        if (modName && modDescription && modFile && accessToken) {
-          const formData = new FormData();
-          formData.append('name', modName);
-          formData.append('description', modDescription);
-          formData.append('file', modFile);
+        if (!accessToken) {
+          alert('You must be logged in to upload a mod.');
+          return;
+        }
 
-          try {
-            const response = await fetch(`${API_BASE}/mods`, {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-              body: formData,
-            });
+        const formData = new FormData();
+        formData.append('name', title);
+        formData.append('summary', description);
+        formData.append('metadata_blob', version);
+        formData.append('filedata', fileInput.files[0]);
 
-            if (response.ok) {
-              const data = await response.json();
-              alert(`Mod uploaded successfully! Mod ID: ${data.id}`);
-            } else {
-              const error = await response.json();
-              alert(`Error: ${error.message}`);
-            }
-          } catch (error) {
-            console.error('Error uploading mod:', error);
+        try {
+          const response = await fetch(`https://${MODIO_GAME_ID}.modapi.io/v1/mods`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: formData,
+          });
+
+          if (response.ok) {
+            alert('Mod submitted successfully!');
+          } else {
+            const error = await response.json();
+            alert(`Error: ${error.message}`);
           }
-        } else {
-          alert('Please complete all fields.');
+        } catch (error) {
+          console.error('Error uploading mod:', error);
         }
       });
     });
 
-    async function handleOAuthRedirect() {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
+    function checkLoginStatus() {
+      const accessToken = localStorage.getItem('modio_access_token');
+      const loginButton = document.getElementById('login-link');
+      const logoutButton = document.getElementById('logout-link');
+      const userButton = document.getElementById('user-button');
+      const uploadForm = document.getElementById('mod-upload-form');
+      const notLoggedInMessage = document.getElementById('not-logged-in-message');
 
       if (accessToken) {
-        localStorage.setItem('modio_access_token', accessToken);
-        await fetchUserInfo(accessToken);
-        enableUploadForm();
+        loginButton.classList.add('hidden');
+        logoutButton.classList.remove('hidden');
+        userButton.textContent = 'Profile';
+        uploadForm.classList.remove('hidden');
+        notLoggedInMessage.classList.add('hidden');
       } else {
-        const storedToken = localStorage.getItem('modio_access_token');
-        if (storedToken) {
-          await fetchUserInfo(storedToken);
-          enableUploadForm();
-        }
+        loginButton.classList.remove('hidden');
+        logoutButton.classList.add('hidden');
+        userButton.textContent = 'Login';
+        uploadForm.classList.add('hidden');
+        notLoggedInMessage.classList.remove('hidden');
       }
     }
 
-    async function fetchUserInfo(token) {
-      try {
-        const response = await fetch(`${API_BASE}/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          document.getElementById('user-avatar').src = userData.avatar.thumb_50x50 || '';
-          document.getElementById('login-message').style.display = 'none';
-          document.getElementById('user-info').style.display = 'flex';
-        }
-      } catch (error) {
-        console.error('Error fetching user info:', error);
-      }
-    }
-
-    function enableUploadForm() {
-      document.getElementById('mod-name').disabled = false;
-      document.getElementById('mod-description').disabled = false;
-      document.getElementById('mod-file').disabled = false;
-      document.getElementById('submit-mod-button').disabled = false;
-      document.getElementById('login-message').style.display = 'none';
+    function generateRandomState() {
+      return Math.random().toString(36).substring(2, 15);
     }
   </script>
 </body>
