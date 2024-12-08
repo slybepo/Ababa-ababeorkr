@@ -140,7 +140,7 @@
     });
 
     // Login button
-    const token = new URLSearchParams(window.location.hash).get('#access_token');
+    const token = new URLSearchParams(window.location.hash).get('?code=');
     if (!token) {
       const authUrl = `https://mod.io/authorize?client_id=${CLIENT_ID}&grant_type=authorization_code&response_type=code&scope=${encodeURIComponent(SCOPES)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
       window.location.href = authUrl;
