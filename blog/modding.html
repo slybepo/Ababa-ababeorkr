@@ -147,7 +147,7 @@
     }
 
     function redirectToAuth() {
-      const authUrl = `https://mod.io/authorize?client_id=${CLIENT_ID}&response_type=code&scope=${encodeURIComponent(SCOPES)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+      const authUrl = `https://mod.io/authorize?client_id=${CLIENT_ID}&grant_type=authorization_code&response_type=code&scope=${encodeURIComponent(SCOPES)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
       window.location.href = authUrl;
     }
 
