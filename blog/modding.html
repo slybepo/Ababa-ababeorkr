@@ -5,222 +5,125 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mod.io Integration</title>
   <style>
-    /* General Styles */
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: white;
+      background-color: #f9f9f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
     }
-
-    /* Navbar */
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      background-color: #1E88E5;
-    }
-
-    .navbar .logo {
-      font-size: 20px;
-      font-weight: bold;
-      color: white;
-    }
-
-    .navbar .user-menu {
-      position: relative;
-    }
-
-    .navbar .user-menu button {
-      background: none;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    .navbar .dropdown {
-      display: none;
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: #333;
-      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .navbar .dropdown a {
-      display: block;
-      padding: 10px;
-      color: white;
-      text-decoration: none;
-    }
-
-    .navbar .dropdown a:hover {
-      background: #444;
-    }
-
-    .navbar .user-menu:hover .dropdown {
-      display: block;
-    }
-
-    /* Container */
     .container {
       max-width: 800px;
       margin: 20px auto;
       padding: 20px;
-      background: #1E1E1E;
+      border: 1px solid #ddd;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      background: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-
-    .container h1 {
-      text-align: center;
-      margin-bottom: 20px;
+    .form-group {
+      margin-bottom: 15px;
     }
-
-    .container form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
     }
-
-    .container form input,
-    .container form textarea,
-    .container form button {
+    .form-group input, .form-group textarea {
+      width: 100%;
       padding: 10px;
-      font-size: 16px;
-      border-radius: 4px;
-      border: 1px solid #555;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
-
-    .container form button {
-      background: #1E88E5;
+    .form-group button {
+      background-color: #1e73be;
       color: white;
+      padding: 10px 20px;
       border: none;
+      border-radius: 5px;
       cursor: pointer;
+      font-size: 16px;
     }
-
-    .container form button:hover {
-      background: #1565C0;
-    }
-
-    .hidden {
-      display: none;
+    .form-group button:hover {
+      background-color: #155a91;
     }
   </style>
 </head>
 <body>
-  <div class="navbar">
-    <div class="logo">Mod.io Integration</div>
-    <div class="user-menu">
-      <button id="user-button">Login</button>
-      <div class="dropdown">
-        <a href="#" id="login-link">Login with Mod.io</a>
-        <a href="#" id="logout-link" class="hidden">Logout</a>
-      </div>
-    </div>
-  </div>
-
   <div class="container">
-    <h1>Upload Your Mod</h1>
-    <form id="mod-upload-form" class="hidden">
-      <input type="text" id="mod-title" placeholder="Title" required>
-      <textarea id="mod-description" placeholder="Description" rows="4" required></textarea>
-      <input type="text" id="mod-version" placeholder="Version (e.g., 1.0.0)" required>
-      <input type="file" id="mod-file" accept=".zip,.rar,.7z" required>
-      <button type="button" id="upload-mod-button">Submit Mod</button>
+    <h1>Mod.io Login</h1>
+    <button id="login-btn">Login with mod.io</button>
+    <div id="user-info" style="display: none;">
+      <p>Welcome, <span id="username"></span>!</p>
+    </div>
+    <hr>
+    <h2>Submit Your Mod</h2>
+    <form id="mod-form">
+      <div class="form-group">
+        <label for="title">Mod Title</label>
+        <input type="text" id="title" name="title" required>
+      </div>
+      <div class="form-group">
+        <label for="desc">Description</label>
+        <textarea id="desc" name="desc" rows="5" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="version">Version</label>
+        <input type="text" id="version" name="version" required>
+      </div>
+      <div class="form-group">
+        <label for="file">Upload File</label>
+        <input type="file" id="file" name="file" required>
+      </div>
+      <div class="form-group">
+        <button type="submit">Submit Mod</button>
+      </div>
     </form>
-    <p id="not-logged-in-message">You need to log in to upload mods.</p>
   </div>
 
   <script>
-    const MODIO_CLIENT_ID = '34180771';
-    const MODIO_GAME_ID = 'starfire-taggers';
-    const REDIRECT_URI = "https://latesttaggers.site/blog/modding";
-    const CLIENT_SECRET = 'a23cf8805fed41bb44a736e2845cc4d1';
+    const CLIENT_ID = '34180771';
+    const REDIRECT_URI = 'https://latesttaggers.site/blog/modding';
+    const API_URL = 'https://g-8056.modapi.io/v1';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      checkLoginStatus();
+    // Login
+    const loginButton = document.getElementById('login-btn');
+    const userInfo = document.getElementById('user-info');
+    const usernameSpan = document.getElementById('username');
 
-      document.getElementById('login-link').addEventListener('click', () => {
-        const state = generateRandomState();
-        const authUrl = `https://mod.io/authorize?response_type=code&client_id=${MODIO_CLIENT_ID}&grant_type=authorization_code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=read write&state=${state}`;
-        window.location.href = authUrl;
-      });
-
-      document.getElementById('logout-link').addEventListener('click', () => {
-        localStorage.removeItem('modio_access_token');
-        checkLoginStatus();
-      });
-
-      document.getElementById('upload-mod-button').addEventListener('click', async () => {
-        const title = document.getElementById('mod-title').value;
-        const description = document.getElementById('mod-description').value;
-        const version = document.getElementById('mod-version').value;
-        const fileInput = document.getElementById('mod-file');
-        const accessToken = localStorage.getItem('modio_access_token');
-
-        if (!accessToken) {
-          alert('You must be logged in to upload a mod.');
-          return;
-        }
-
-        const formData = new FormData();
-        formData.append('name', title);
-        formData.append('summary', description);
-        formData.append('metadata_blob', version);
-        formData.append('filedata', fileInput.files[0]);
-
-        try {
-          const response = await fetch(`https://${MODIO_GAME_ID}.modapi.io/v1/mods`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: formData,
-          });
-
-          if (response.ok) {
-            alert('Mod submitted successfully!');
-          } else {
-            const error = await response.json();
-            alert(`Error: ${error.message}`);
-          }
-        } catch (error) {
-          console.error('Error uploading mod:', error);
-        }
-      });
+    loginButton.addEventListener('click', () => {
+      const authUrl = `${API_URL}/oauth/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${REDIRECT_URI}`;
+      window.location.href = authUrl;
     });
 
-    function checkLoginStatus() {
-      const accessToken = localStorage.getItem('modio_access_token');
-      const loginButton = document.getElementById('login-link');
-      const logoutButton = document.getElementById('logout-link');
-      const userButton = document.getElementById('user-button');
-      const uploadForm = document.getElementById('mod-upload-form');
-      const notLoggedInMessage = document.getElementById('not-logged-in-message');
-
-      if (accessToken) {
-        loginButton.classList.add('hidden');
-        logoutButton.classList.remove('hidden');
-        userButton.textContent = 'Profile';
-        uploadForm.classList.remove('hidden');
-        notLoggedInMessage.classList.add('hidden');
-      } else {
-        loginButton.classList.remove('hidden');
-        logoutButton.classList.add('hidden');
-        userButton.textContent = 'Login';
-        uploadForm.classList.add('hidden');
-        notLoggedInMessage.classList.remove('hidden');
-      }
+    // After Login
+    const token = new URLSearchParams(window.location.hash).get('#access_token');
+    if (token) {
+      fetch(`${API_URL}/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(response => response.json())
+        .then(user => {
+          usernameSpan.textContent = user.username;
+          userInfo.style.display = 'block';
+          loginButton.style.display = 'none';
+        });
     }
 
-    function generateRandomState() {
-      return Math.random().toString(36).substring(2, 15);
-    }
+    // Submit Mod
+    const modForm = document.getElementById('mod-form');
+    modForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(modForm);
+      fetch('/submit-mod', {
+        method: 'POST',
+        body: formData,
+      })
+        .then(response => response.json())
+        .then(data => alert('Mod submitted successfully!'))
+        .catch(err => alert('Error submitting mod.'));
+    });
   </script>
 </body>
 </html>
